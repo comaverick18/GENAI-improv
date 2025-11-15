@@ -1,0 +1,5 @@
+{
+  "name": "ImprovU AI Coach - JAZZ",
+  "description": "A simple AI chatbot powered by Gemini that acts as an improv coach named JAZZ, teaching the 'Yes, and...' concept.",
+  "requestFramePermissions": []
+}

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ImprovU AI Coach - JAZZ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="importmap">
+    {
+      "imports": {
+        "@google/genai": "https://aistudiocdn.com/@google/genai@^1.29.1"
+      }
+    }
+    </script>
+    <style>
+      body {
+        background-color: #F7F8FC;
+      }
+      /* Simple keyframe animation for the loading dots */
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+      }
+      .animate-pulse-dots span {
+        animation: pulse 1.4s infinite ease-in-out both;
+      }
+      .animate-pulse-dots span:nth-child(1) { animation-delay: -0.32s; }
+      .animate-pulse-dots span:nth-child(2) { animation-delay: -0.16s; }
+    </style>
+</head>
+<body class="font-sans">
+    <div id="app" class="grid grid-cols-12 gap-6 p-6 h-screen">
+
+      <!-- Left Sidebar -->
+      <aside class="col-span-3 bg-white rounded-2xl p-6 flex flex-col">
+        <div class="flex items-center justify-between mb-8">
+          <h1 class="text-2xl font-bold text-gray-800">Jazz AI Chat</h1>
+          <button id="new-session-button" class="flex items-center gap-2 bg-indigo-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-indigo-600 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+            </svg>
+            New Session
+          </button>
+        </div>
+        <nav id="topics-list" class="flex-grow space-y-1">
+          <a href="#" class="block hover:bg-gray-100 rounded-lg p-4 cursor-pointer" data-topic="Planning a Trip">
+            <p class="font-semibold text-gray-800 pointer-events-none">Planning a Trip</p>
+            <p class="text-sm text-gray-500 pointer-events-none">Practice social planning</p>
+          </a>
+          <a href="#" class="block hover:bg-gray-100 rounded-lg p-4 cursor-pointer" data-topic="Job Interview Practice">
+            <p class="font-semibold text-gray-800 pointer-events-none">Job Interview Practice</p>
+            <p class="text-sm text-gray-500 pointer-events-none">Practice professional skills</p>
+          </a>
+          <a href="#" class="block hover:bg-gray-100 rounded-lg p-4 cursor-pointer" data-topic="Coffee Shop Conversation">
+            <p class="font-semibold text-gray-800 pointer-events-none">Coffee Shop Conversation</p>
+            <p class="text-sm text-gray-500 pointer-events-none">Practice casual chat</p>
+          </a>
+           <a href="#" class="block hover:bg-gray-100 rounded-lg p-4 cursor-pointer" data-topic="First Date Scenarios">
+            <p class="font-semibold text-gray-800 pointer-events-none">First Date Scenarios</p>
+            <p class="text-sm text-gray-500 pointer-events-none">Practice personal connection</p>
+          </a>
+           <a href="#" class="block hover:bg-gray-100 rounded-lg p-4 cursor-pointer" data-topic="Networking Event Chat">
+            <p class="font-semibold text-gray-800 pointer-events-none">Networking Event Chat</p>
+            <p class="text-sm text-gray-500 pointer-events-none">Practice making contacts</p>
+          </a>
+        </nav>
+        <div class="mt-auto">
+          <div class="bg-gray-100 rounded-lg p-4 flex items-center gap-4">
+            <div class="w-10 h-10 rounded-full bg-indigo-500 flex items-center justify-center font-bold text-white">U</div>
+            <div>
+              <p class="font-semibold text-gray-800">User Name</p>
+              <p class="text-sm text-gray-500">Level 7</p>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Middle Chat Panel -->
+      <div class="col-span-5 bg-white rounded-2xl flex flex-col shadow-sm overflow-hidden">
+        <header class="p-4 border-b border-gray-200">
+          <span id="scenario-title" class="bg-indigo-100 text-indigo-600 text-sm font-semibold px-3 py-1 rounded-full">Scenario: Learning "Yes, and..."</span>
+        </header>
+
+        <main id="chat-container" class="flex-1 overflow-y-auto p-6 min-h-0">
+          <div id="messages-list" class="space-y-6">
+            <!-- Chat messages will be dynamically inserted here -->
+          </div>
+        </main>
+
+        <footer class="p-4 border-t border-gray-200">
+          <form id="chat-form" class="flex items-center gap-2">
+            <input
+              id="user-input"
+              type="text"
+              placeholder="Type your response..."
+              class="flex-1 w-full px-4 py-3 bg-gray-100 border border-transparent rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-800 placeholder-gray-500 transition-shadow duration-200"
+              aria-label="User message input"
+            />
+            <button
+              id="send-button"
+              type="submit"
+              class="p-3 bg-indigo-500 rounded-full text-white hover:bg-indigo-600 disabled:bg-gray-400 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 transform active:scale-95 disabled:scale-100"
+              aria-label="Send message"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M7 4a3 3 0 016 0v6a3 3 0 11-6 0V4z" />
+                <path d="M5.5 8.5a.5.5 0 01.5.5v1.5a4 4 0 004 4h0a4 4 0 004-4V9a.5.5 0 011 0v1.5a5 5 0 01-5 5h0a5 5 0 01-5-5V9a.5.5 0 01.5.5z" />
+              </svg>
+            </button>
+          </form>
+          <p id="error-message" class="text-red-500 text-center mt-2 text-sm" role="alert"></p>
+        </footer>
+      </div>
+
+      <!-- Right Feedback Panel -->
+      <aside class="col-span-4 bg-white rounded-2xl p-6 flex flex-col space-y-6 shadow-sm">
+        <div class="space-y-4">
+            <h2 class="text-xl font-bold text-gray-800">Conversation Feedback</h2>
+            <div class="space-y-3">
+              <div>
+                <div class="flex justify-between items-center mb-1">
+                  <span class="text-sm font-medium text-gray-600">Confidence</span>
+                  <span class="text-sm font-bold text-gray-800">75%</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                  <div class="bg-gradient-to-r from-blue-400 to-green-400 h-2.5 rounded-full" style="width: 75%"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between items-center mb-1">
+                  <span class="text-sm font-medium text-gray-600">Flow</span>
+                  <span class="text-sm font-bold text-gray-800">82%</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                  <div class="bg-gradient-to-r from-blue-400 to-green-400 h-2.5 rounded-full" style="width: 82%"></div>
+                </div>
+              </div>
+            </div>
+        </div>
+        <div class="bg-gray-100 rounded-lg p-4 space-y-3">
+          <h3 class="font-semibold text-gray-700">Session Settings</h3>
+          <div class="flex justify-between text-sm">
+            <span class="text-gray-500">Voice</span>
+            <span class="font-medium text-gray-800">Female</span>
+          </div>
+          <div class="flex justify-between text-sm">
+            <span class="text-gray-500">Difficulty</span>
+            <span class="font-medium text-gray-800">Medium</span>
+          </div>
+          <div class="flex justify-between text-sm">
+            <span class="text-gray-500">Duration</span>
+            <span class="font-medium text-gray-800">15 min</span>
+          </div>
+        </div>
+        <div class="flex-grow"></div>
+        <button class="w-full bg-green-500 text-white font-semibold py-3 rounded-lg hover:bg-green-600 transition-colors">
+          End Session & Get Feedback
+        </button>
+      </aside>
+    </div>
+
+    <script type="module" src="index.tsx"></script>
+</body>
+</html>
